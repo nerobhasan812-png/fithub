@@ -1,1 +1,12 @@
-function getBookings(f){return data('bookings',f||{});}function classStart(x){return new Date(x.class_date+'T'+x.class_time+':00');}async function createBooking(memberId,classId){return api('/api/action','POST',{action:'book',data:{memberId:memberId,classId:classId}});}async function cancelBooking(id){return api('/api/action','POST',{action:'cancel',id:id});}async function markAttendance(id){return api('/api/action','POST',{action:'attendance',id:id});}
+async function getBookings(filters) {
+  return api("/api/bookings?" + query(filters));
+}
+async function createBooking(memberId, classId) {
+  return api("/api/bookings", "POST", { memberId: memberId, classId: classId });
+}
+async function cancelBooking(id) {
+  return api("/api/bookings/" + id + "/cancel", "POST", {});
+}
+async function markAttendance(id) {
+  return api("/api/bookings/" + id + "/attendance", "POST", {});
+}

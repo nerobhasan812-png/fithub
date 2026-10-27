@@ -1,3 +1,141 @@
-function bookingForm(){const members=getMembers('', 'Active');const classes=getClasses();openModal('Create booking','<form id="booking-form"><div class="form-field"><label>Member</label><select id="b-member"><option value="">Choose member</option>'+members.map(m=>'<option value="'+m.id+'">'+escapeText(m.name)+'</option>').join('')+'</select></div><div class="form-field"><label>Class</label><select id="b-class"><option value="">Choose class</option>'+classes.map(c=>'<option value="'+c.id+'">'+escapeText(c.title)+' — '+c.class_date+' '+c.class_time+'</option>').join('')+'</select></div><div class="field-error" id="booking-error"></div><div class="form-actions"><button type="button" class="button secondary" onclick="closeModal()">Cancel</button><button class="button">Create booking</button></div></form>');document.getElementById('booking-form').onsubmit=async e=>{e.preventDefault();const r=await createBooking(Number(document.getElementById('b-member').value),Number(document.getElementById('b-class').value));if(r.error){fieldError('booking-error',r.error);return;}closeModal();showToast('Booking created');renderBookingsPage();};}
-function renderBookingsPage(){const p=document.getElementById('page-content');p.innerHTML='<div class="page-head"><h2>Bookings</h2><button class="button" id="add-booking">'+icon('plus')+' Create booking</button></div><div class="toolbar"><select id="booking-member"><option value="">All members</option>'+getMembers().map(m=>'<option value="'+m.id+'">'+escapeText(m.name)+'</option>').join('')+'</select><select id="booking-class"><option value="">All classes</option>'+getClasses().map(c=>'<option value="'+c.id+'">'+escapeText(c.title)+'</option>').join('')+'</select><select id="booking-status"><option value="">All statuses</option><option>Booked</option><option>Cancelled</option></select></div><div id="booking-table"></div>';function draw(){const rows=getBookings({member_id:document.getElementById('booking-member').value,class_id:document.getElementById('booking-class').value,status:document.getElementById('booking-status').value}).map(b=>'<tr><td>'+escapeText(b.member_name)+'</td><td><strong>'+escapeText(b.class_title)+'</strong><br><small>'+b.class_date+' '+b.class_time+'</small></td><td>'+statusBadge(b.status)+'</td><td>$'+Number(b.cancellation_fee).toFixed(2)+'</td><td>'+(b.attended?'Yes':'No')+'</td><td>'+(b.status==='Booked'?'<button class="icon-button" title="Cancel" onclick="askCancelBooking('+b.id+')">'+icon('delete')+'</button><button class="icon-button" title="Mark attendance" onclick="attendance('+b.id+')">✓</button>':'')+'</td></tr>');document.getElementById('booking-table').innerHTML=renderTable(['Member','Class','Status','Fee','Attended',''],rows,'No bookings match your filters.');}['booking-member','booking-class','booking-status'].forEach(id=>document.getElementById(id).onchange=draw);document.getElementById('add-booking').onclick=bookingForm;draw();}
-function askCancelBooking(id){confirmAction('Cancel this booking?',async()=>{const r=await cancelBooking(id);showToast(r.error|| (r.fee?'Booking cancelled, a $'+r.fee+' late fee was applied':'Booking cancelled'),r.error?'error':'success');renderBookingsPage();});}async function attendance(id){const r=await markAttendance(id);showToast(r.error||'Attendance marked',r.error?'error':'success');renderBookingsPage();}
+async function renderBookingsPage() {
+  const page = document.getElementById("page-content");
+  const members = await getMembers();
+  const classes = await getClasses();
+  page.innerHTML =
+    '<div class="page-head"><h2>Bookings</h2><button class="button" id="add-booking">' +
+    icon("plus") +
+    ' Create booking</button></div><div class="toolbar"><select id="booking-member"><option value="">All members</option>' +
+    members
+      .map(function (item) {
+        return (
+          '<option value="' +
+          item.id +
+          '">' +
+          escapeText(item.name) +
+          "</option>"
+        );
+      })
+      .join("") +
+    '</select><select id="booking-class"><option value="">All classes</option>' +
+    classes
+      .map(function (item) {
+        return (
+          '<option value="' +
+          item.id +
+          '">' +
+          escapeText(item.title) +
+          "</option>"
+        );
+      })
+      .join("") +
+    '</select><select id="booking-status"><option value="">All statuses</option><option>Booked</option><option>Cancelled</option></select><input id="booking-from" type="date"><input id="booking-to" type="date"></div><div id="booking-table"></div>';
+  async function draw() {
+    const rows = await getBookings({
+      member_id: document.getElementById("booking-member").value,
+      class_id: document.getElementById("booking-class").value,
+      status: document.getElementById("booking-status").value,
+      from: document.getElementById("booking-from").value,
+      to: document.getElementById("booking-to").value,
+    });
+    document.getElementById("booking-table").innerHTML = renderTable(
+      ["Member", "Class", "Status", "Fee", "Attendance", ""],
+      rows.map(function (item) {
+        return (
+          "<tr><td>" +
+          escapeText(item.member_name) +
+          "</td><td>" +
+          escapeText(item.class_title) +
+          "<br><small>" +
+          item.class_date +
+          " " +
+          item.class_time +
+          "</small></td><td>" +
+          statusBadge(item.status) +
+          "</td><td>$" +
+          Number(item.cancellation_fee).toFixed(2) +
+          "</td><td>" +
+          (item.attended ? "Present" : "Absent") +
+          "</td><td>" +
+          (item.status === "Booked"
+            ? '<button class="icon-button" onclick="cancelOne(' +
+              item.id +
+              ')">Cancel</button><button class="icon-button" onclick="attendanceOne(' +
+              item.id +
+              ')">Toggle attendance</button>'
+            : "") +
+          "</td></tr>"
+        );
+      }),
+      "No bookings match your filters.",
+    );
+  }
+  window.cancelOne = async function (id) {
+    const result = await cancelBooking(id);
+    showToast(
+      result.error || "Booking cancelled",
+      result.error ? "error" : "success",
+    );
+    await draw();
+  };
+  window.attendanceOne = async function (id) {
+    const result = await markAttendance(id);
+    showToast(
+      result.error || "Attendance updated",
+      result.error ? "error" : "success",
+    );
+    await draw();
+  };
+  [
+    "booking-member",
+    "booking-class",
+    "booking-status",
+    "booking-from",
+    "booking-to",
+  ].forEach(function (id) {
+    document.getElementById(id).onchange = draw;
+  });
+  document.getElementById("add-booking").onclick = async function () {
+    const active = await getMembers("", "Active");
+    const available = await getClasses();
+    openModal(
+      "Create booking",
+      '<form id="booking-form"><div class="form-field"><label>Member</label><select id="b-member">' +
+        active
+          .map(function (item) {
+            return (
+              '<option value="' +
+              item.id +
+              '">' +
+              escapeText(item.name) +
+              "</option>"
+            );
+          })
+          .join("") +
+        '</select></div><div class="form-field"><label>Class</label><select id="b-class">' +
+        available
+          .map(function (item) {
+            return (
+              '<option value="' +
+              item.id +
+              '">' +
+              escapeText(item.title) +
+              "</option>"
+            );
+          })
+          .join("") +
+        '</select></div><div class="field-error" id="booking-error"></div><button class="button">Create booking</button></form>',
+    );
+    document.getElementById("booking-form").onsubmit = async function (event) {
+      event.preventDefault();
+      const result = await createBooking(
+        Number(document.getElementById("b-member").value),
+        Number(document.getElementById("b-class").value),
+      );
+      if (result.error) return fieldError("booking-error", result.error);
+      closeModal();
+      await draw();
+    };
+  };
+  await draw();
+}

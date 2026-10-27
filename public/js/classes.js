@@ -1,1 +1,14 @@
-function getClasses(f){return data('classes',f||{});}function getClass(id){return getClasses().find(x=>x.id===id);}function validateClass(d){const e={};if(!d.title.trim())e.title='Class title is required';if(!d.category)e.category='Choose a category';if(!d.trainer_id)e.trainer_id='Choose a trainer';if(!d.class_date||!d.class_time)e.class_date='Enter a valid date and time';if(!Number.isInteger(d.duration)||d.duration<15||d.duration>240)e.duration='Duration must be between 15 and 240 minutes';if(!Number.isInteger(d.capacity)||d.capacity<1)e.capacity='Capacity must be at least 1';return e;}async function saveClass(d,id){const e=validateClass(d);if(Object.keys(e).length)return {errors:e};const r=api('/api/class-action','POST',{data:d,id:id});return r.error?{errors:{capacity:r.error}}:r;}async function removeClass(id){return api('/api/action','POST',{action:'deleteClass',id:id});}
+async function getClasses(filters) {
+  return api("/api/classes?" + query(filters));
+}
+async function getClass(id) {
+  return (await getClasses()).find(function (item) {
+    return item.id === id;
+  });
+}
+async function saveClass(data, id) {
+  return api("/api/classes" + (id ? "/" + id : ""), id ? "PUT" : "POST", data);
+}
+async function removeClass(id) {
+  return api("/api/classes/" + id, "DELETE");
+}

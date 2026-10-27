@@ -1,5 +1,36 @@
-let staffRows=[];
-function staffForm(staff){staff=staff||{};openModal(staff.id?'Edit staff account':'Add staff account','<form id="staff-form"><div class="form-grid"><div class="form-field"><label>Name</label><input id="staff-name" value="'+escapeText(staff.name)+'"></div><div class="form-field"><label>Username</label><input id="staff-user" value="'+escapeText(staff.username)+'"></div><div class="form-field full"><label>'+(staff.id?'New password, leave blank to keep it':'Password')+'</label><input id="staff-password" type="password"><div class="field-error" id="staff-error"></div></div></div><div class="form-actions"><button type="button" class="button secondary" onclick="closeModal()">Cancel</button><button class="button">Save staff account</button></div></form>');document.getElementById('staff-form').onsubmit=e=>{e.preventDefault();const name=document.getElementById('staff-name').value.trim(),username=document.getElementById('staff-user').value.trim(),password=document.getElementById('staff-password').value;if(!name||!username||(!staff.id&&password.length<8)){fieldError('staff-error','Fill every field and use a password of at least 8 characters');return;}const r=api('/api/staff-action','POST',{action:'save',id:staff.id,data:{name:name,username:username,password:password}});if(r.error){fieldError('staff-error',r.error);return;}closeModal();showToast(staff.id?'Staff account updated':'Staff account added');renderSettingsPage();};}
-function editStaff(id){staffForm(staffRows.find(s=>s.id===id));}
-function renderSettingsPage(){staffRows=api('/api/staff');document.getElementById('page-content').innerHTML='<div class="page-head"><h2>Settings</h2><button class="button" id="add-staff">'+icon('plus')+' Add staff account</button></div><section class="card"><h3>Staff accounts</h3>'+renderTable(['Name','Username',''],staffRows.map(s=>'<tr><td>'+escapeText(s.name)+'</td><td>'+escapeText(s.username)+'</td><td><button class="icon-button" onclick="editStaff('+s.id+')">'+icon('edit')+'</button><button class="icon-button" onclick="removeStaff('+s.id+')">'+icon('delete')+'</button></td></tr>'),'No staff accounts found.')+'</section><section class="card" style="margin-top:20px"><h3>Database</h3><p>Download the SQLite database file to open it in a SQLite viewer.</p><button class="button secondary" onclick="window.location.href=\'/api/export\'">Export database</button></section>';document.getElementById('add-staff').onclick=()=>staffForm();}
-function removeStaff(id){confirmAction('Delete this staff account?',async()=>{const r=api('/api/staff-action','POST',{action:'delete',id:id,data:{currentId:currentStaff().id}});showToast(r.error||'Staff account deleted',r.error?'error':'success');renderSettingsPage();});}
+async function renderSettingsPage() {
+  const staff = await api("/api/settings/staff");
+  document.getElementById("page-content").innerHTML =
+    '<div class="page-head"><h2>Settings</h2></div><section class="card"><h3>Staff accounts</h3>' +
+    renderTable(
+      ["Name", "Username"],
+      staff.map(function (item) {
+        return (
+          "<tr><td>" +
+          escapeText(item.name) +
+          "</td><td>" +
+          escapeText(item.username) +
+          "</td></tr>"
+        );
+      }),
+      "No staff accounts found.",
+    ) +
+    '</section><section class="card" style="margin-top:20px"><h3>Database</h3><p>Download or replace the SQLite database file.</p><button class="button secondary" onclick="window.location.href=\'/api/settings/export\'">Export database</button> <input id="import-file" type="file" accept=".sqlite,application/x-sqlite3"></section>';
+  document.getElementById("import-file").onchange = async function () {
+    const file = this.files[0];
+    if (!file) return;
+    const base64 = await file.arrayBuffer();
+    const bytes = new Uint8Array(base64);
+    let text = "";
+    bytes.forEach(function (byte) {
+      text += String.fromCharCode(byte);
+    });
+    const result = await api("/api/settings/import", "POST", {
+      file: btoa(text),
+    });
+    if (result.error) return showToast(result.error, "error");
+    sessionStorage.removeItem("fithub_staff");
+    showToast("Database imported. Please sign in again.");
+    showLoginPage();
+  };
+}

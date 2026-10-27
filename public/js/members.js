@@ -1,1 +1,26 @@
-function getMembers(search,status){return data('members',{search:search||'',status:status||''});}function getMember(id){return getMembers().find(x=>x.id===id);}function memberStatus(m){return m.active&&m.expiry_date>=todayText()?'Active':'Expired';}function validateMember(d){const e={};if(!d.name.trim())e.name='Name is required';if(!validEmail(d.email))e.email='Enter a valid email address';if(!validPhone(d.phone))e.phone='Phone must contain digits only';if(!d.membership_type)e.membership_type='Choose a membership type';if(!d.start_date||!d.expiry_date||d.expiry_date<d.start_date)e.expiry_date='Enter valid membership dates';return e;}async function saveMember(d,id){const e=validateMember(d);if(Object.keys(e).length)return {errors:e};const r=api('/api/action','POST',{action:'saveMember',data:d,id:id});return r.error?{errors:{email:r.error}}:r;}async function removeMember(id){return api('/api/action','POST',{action:'deleteMember',id:id});}async function deactivateMember(id){return api('/api/action','POST',{action:'deactivateMember',id:id});}
+async function getMembers(search, status) {
+  return api(
+    "/api/members?" + query({ search: search || "", status: status || "" }),
+  );
+}
+async function getMember(id) {
+  return (await getMembers()).find(function (item) {
+    return item.id === id;
+  });
+}
+function memberStatus(member) {
+  return !member.active
+    ? "Inactive"
+    : member.expiry_date < todayText()
+      ? "Expired"
+      : "Active";
+}
+async function saveMember(data, id) {
+  return api("/api/members" + (id ? "/" + id : ""), id ? "PUT" : "POST", data);
+}
+async function removeMember(id) {
+  return api("/api/members/" + id, "DELETE");
+}
+async function deactivateMember(id) {
+  return api("/api/members/" + id + "/deactivate", "POST", {});
+}

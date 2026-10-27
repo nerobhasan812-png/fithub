@@ -1,1 +1,14 @@
-function getTrainers(search){return data('trainers',{search:search||''});}function getTrainer(id){return getTrainers().find(x=>x.id===id);}function validateTrainer(d){const e={};if(!d.name.trim())e.name='Name is required';if(!d.specialty.trim())e.specialty='Specialty is required';if(!validPhone(d.phone))e.phone='Phone must contain digits only';if(!validEmail(d.email))e.email='Enter a valid email address';return e;}async function saveTrainer(d,id){const e=validateTrainer(d);if(Object.keys(e).length)return {errors:e};const r=api('/api/action','POST',{action:'saveTrainer',data:d,id:id});return r.error?{errors:{email:r.error}}:r;}async function removeTrainer(id){return api('/api/action','POST',{action:'deleteTrainer',id:id});}
+async function getTrainers(search) {
+  return api("/api/trainers?" + query({ search: search || "" }));
+}
+async function getTrainer(id) {
+  return (await getTrainers()).find(function (item) {
+    return item.id === id;
+  });
+}
+async function saveTrainer(data, id) {
+  return api("/api/trainers" + (id ? "/" + id : ""), id ? "PUT" : "POST", data);
+}
+async function removeTrainer(id) {
+  return api("/api/trainers/" + id, "DELETE");
+}
