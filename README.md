@@ -4,7 +4,9 @@ FitHub is a class booking and membership management system for a local fitness c
 
 ## Open the app
 
-Double-click `index.html` to open FitHub in a modern browser. The database is stored locally in the browser.
+Run `npm install`, then run `npm start`. Open `http://localhost:3030` in a browser.
+
+The real SQLite database is `data/fithub.sqlite`. Open it with DB Browser for SQLite or another SQLite viewer.
 
 Default staff login:
 
@@ -13,7 +15,8 @@ Default staff login:
 
 ## Files
 
-- `index.html` loads the app
+- `server.js` runs the local app server
+- `data/fithub.sqlite` is the SQLite database
 - `css/style.css` contains the styles
 - `js/` contains database, business logic, page, and app files
 - `lib/sql-asm.js` is the local SQLite library
