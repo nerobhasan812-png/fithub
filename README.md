@@ -19,4 +19,3 @@ Default staff login:
 - `data/fithub.sqlite` is the SQLite database
 - `css/style.css` contains the styles
 - `js/` contains database, business logic, page, and app files
-- `lib/sql-asm.js` is the local SQLite library
