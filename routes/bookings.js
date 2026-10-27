@@ -21,14 +21,18 @@ function checkClass(classId) {
 
 function classIsFull(item) {
   const row = getDb()
-    .prepare("SELECT COUNT(*) total FROM bookings WHERE class_id=? AND status='Booked'")
+    .prepare(
+      "SELECT COUNT(*) total FROM bookings WHERE class_id=? AND status='Booked'",
+    )
     .get(item.id);
   return row.total >= item.capacity;
 }
 
 function hasDuplicate(memberId, classId) {
   return getDb()
-    .prepare("SELECT id FROM bookings WHERE member_id=? AND class_id=? AND status='Booked'")
+    .prepare(
+      "SELECT id FROM bookings WHERE member_id=? AND class_id=? AND status='Booked'",
+    )
     .get(memberId, classId);
 }
 

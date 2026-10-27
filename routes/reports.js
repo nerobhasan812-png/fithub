@@ -24,7 +24,11 @@ router.get("/dashboard", function (req, res) {
   const db = getDb();
   const classes = db
     .prepare(
-      "SELECT c.*,t.name trainer_name,(SELECT COUNT(*) FROM bookings b WHERE b.class_id=c.id AND b.status='Booked') booking_count FROM classes c JOIN trainers t ON t.id=c.trainer_id ORDER BY c.class_date,c.class_time",
+      "SELECT c.*, t.name trainer_name, " +
+        "(SELECT COUNT(*) FROM bookings b " +
+        "WHERE b.class_id=c.id AND b.status='Booked') booking_count " +
+        "FROM classes c JOIN trainers t ON t.id=c.trainer_id " +
+        "ORDER BY c.class_date,c.class_time",
     )
     .all();
   res.json({
@@ -49,7 +53,10 @@ router.get("/dashboard", function (req, res) {
       .slice(0, 6),
     categories: db
       .prepare(
-        "SELECT c.category,COUNT(b.id) total FROM classes c LEFT JOIN bookings b ON b.class_id=c.id AND b.status='Booked' GROUP BY c.category",
+        "SELECT c.category, COUNT(b.id) total " +
+          "FROM classes c LEFT JOIN bookings b " +
+          "ON b.class_id=c.id AND b.status='Booked' " +
+          "GROUP BY c.category",
       )
       .all(),
   });
@@ -59,21 +66,31 @@ router.get("/", function (req, res) {
   const r = range(req.query);
   const classes = db
     .prepare(
-      "SELECT c.title name,COUNT(b.id) bookings,COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance FROM classes c LEFT JOIN bookings b ON b.class_id=c.id AND b.status='Booked' WHERE 1=1" +
+      "SELECT c.title name, COUNT(b.id) bookings, " +
+        "COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance " +
+        "FROM classes c LEFT JOIN bookings b " +
+        "ON b.class_id=c.id AND b.status='Booked' WHERE 1=1" +
         r.sql +
         " GROUP BY c.id ORDER BY c.class_date",
     )
     .all(...r.values);
   const trainers = db
     .prepare(
-      "SELECT t.name,COUNT(b.id) bookings,COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance FROM trainers t LEFT JOIN classes c ON c.trainer_id=t.id LEFT JOIN bookings b ON b.class_id=c.id AND b.status='Booked' WHERE 1=1" +
+      "SELECT t.name, COUNT(b.id) bookings, " +
+        "COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance " +
+        "FROM trainers t LEFT JOIN classes c ON c.trainer_id=t.id " +
+        "LEFT JOIN bookings b ON b.class_id=c.id AND b.status='Booked' WHERE 1=1" +
         r.sql +
         " GROUP BY t.id ORDER BY t.name",
     )
     .all(...r.values);
   const members = db
     .prepare(
-      "SELECT m.name,COUNT(b.id) bookings,COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance FROM members m LEFT JOIN bookings b ON b.member_id=m.id AND b.status='Booked' LEFT JOIN classes c ON c.id=b.class_id WHERE 1=1" +
+      "SELECT m.name, COUNT(b.id) bookings, " +
+        "COALESCE(SUM(CASE WHEN b.attended=1 THEN 1 ELSE 0 END),0) attendance " +
+        "FROM members m LEFT JOIN bookings b " +
+        "ON b.member_id=m.id AND b.status='Booked' " +
+        "LEFT JOIN classes c ON c.id=b.class_id WHERE 1=1" +
         r.sql +
         " GROUP BY m.id ORDER BY m.name",
     )
@@ -85,7 +102,10 @@ router.get("/", function (req, res) {
   });
   const cancelled = db
     .prepare(
-      "SELECT m.name member,c.title class,c.class_date,b.cancelled_at,b.cancellation_fee fee FROM bookings b JOIN members m ON m.id=b.member_id JOIN classes c ON c.id=b.class_id WHERE b.status='Cancelled'" +
+      "SELECT m.name member, c.title class, c.class_date, b.cancelled_at, " +
+        "b.cancellation_fee fee FROM bookings b " +
+        "JOIN members m ON m.id=b.member_id " +
+        "JOIN classes c ON c.id=b.class_id WHERE b.status='Cancelled'" +
         r.sql +
         " ORDER BY c.class_date",
     )
