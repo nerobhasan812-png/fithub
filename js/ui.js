@@ -5,8 +5,8 @@ function escapeText(value) {
 }
 
 function icon(name) {
-  const icons = { dashboard: '⌂', members: '♙', trainers: '♧', classes: '▣', bookings: '✓', reports: '▥', settings: '⚙', logout: '↪', plus: '+', edit: '✎', delete: '×', menu: '☰', close: '×' };
-  return '<span class="icon">' + (icons[name] || '') + '</span>';
+  const paths = { dashboard: 'M3 11l9-8 9 8v9H4v-9M9 20v-6h6v6', members: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87', trainers: 'M4 20h16M6 20V9l6-5 6 5v11M9 20v-4h6v4M9 11h.01M15 11h.01', classes: 'M4 5h16v15H4zM8 3v4M16 3v4M4 10h16', bookings: 'M5 12l4 4L19 6', reports: 'M5 20V10M12 20V4M19 20v-7', settings: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4', logout: 'M10 17l5-5-5-5M15 12H3M21 3v18h-8', plus: 'M12 5v14M5 12h14', edit: 'M4 20h4l11-11-4-4L4 16zM13 7l4 4', delete: 'M4 7h16M10 11v6M14 11v6M9 7l1-3h4l1 3M6 7l1 14h10l1-14', menu: 'M4 7h16M4 12h16M4 17h16', close: 'M6 6l12 12M18 6L6 18' };
+  return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + (paths[name] || '') + '"></path></svg>';
 }
 
 function showToast(message, type) {

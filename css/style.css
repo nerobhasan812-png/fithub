@@ -13,3 +13,4 @@ button { cursor:pointer; }
 @keyframes fadein { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
 @media(max-width:800px) { .sidebar { width:245px; transform:translateX(-100%); transition:transform .2s; }.sidebar.open { transform:translateX(0); }.main { margin-left:0; width:100%; }.topbar { padding:0 18px; }.page { padding:22px 18px; }.menu-toggle { display:block!important; }.stats,.dashboard-grid,.report-grid { grid-template-columns:1fr; }.form-grid { grid-template-columns:1fr; }.form-field.full { grid-column:auto; } }
 @media(min-width:801px) { .menu-toggle { display:none; } }
+.icon { width:17px; height:17px; vertical-align:-3px; }
